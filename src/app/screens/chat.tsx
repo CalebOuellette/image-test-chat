@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { toast } from "sonner";
 
 import { BatchChat } from "@/types/BatchChat";
@@ -23,8 +23,10 @@ export function Chat({
     "Is this image of a used product or new?",
     "If text is present, is it readable?",
   ]);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
 
   const handleSuggestionClick = async (suggestion: string) => {
+    if (streaming) return;
     setSuggestions((prev) => prev.filter((s) => s !== suggestion));
     setInput("");
     await sendMessage(suggestion);
@@ -62,6 +64,12 @@ export function Chat({
       );
     }
     setStreaming(false);
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTo({
+        top: chatContainerRef.current.scrollHeight,
+        behavior: "smooth",
+      });
+    }
   };
 
   const handleSendMessage = async () => {
@@ -71,7 +79,7 @@ export function Chat({
   };
 
   return (
-    <div className="flex flex-col h-screen relative px-0  md:px-10 lg:px-30">
+    <div className="flex flex-col h-screen relative px-0  ">
       <header className="bg-white  border-gray-200 px-6 py-4 border-b">
         <div className="flex items-center justify-start">
           <div>
@@ -81,7 +89,10 @@ export function Chat({
           </div>
         </div>
       </header>
-      <div className="flex-1 overflow-y-scroll p-4 space-y-4   pb-40">
+      <div
+        ref={chatContainerRef}
+        className="flex-1 overflow-y-scroll p-4 space-y-4   pb-40  md:px-10 lg:px-30"
+      >
         {chat.messages.map((message, index) => (
           <div key={index} className="space-y-2">
             {message.role === "user" && message.content && (
